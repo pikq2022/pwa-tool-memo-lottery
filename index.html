@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#667eea">
+<title>三合一工具 - 备忘录/倒计时/抽签</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='32' fill='%23667eea'/%3E%3Ctext x='96' y='128' font-size='80' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold'%3E%E5%B7%A5%3C/text%3E%3C/svg%3E">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh; color: #333; padding-bottom: 80px;
+}
+.header {
+  text-align: center; padding: 20px 16px 10px; color: #fff;
+}
+.header h1 { font-size: 20px; font-weight: 600; letter-spacing: 1px; }
+.header p { font-size: 12px; opacity: 0.8; margin-top: 4px; }
+.tabs {
+  display: flex; margin: 12px 16px 16px; background: rgba(255,255,255,0.2);
+  border-radius: 16px; padding: 4px; backdrop-filter: blur(10px);
+}
+.tab {
+  flex: 1; text-align: center; padding: 10px 0; border-radius: 12px;
+  color: rgba(255,255,255,0.7); font-size: 14px; cursor: pointer;
+  transition: all 0.3s; font-weight: 500; border: none; background: transparent;
+}
+.tab.active { background: #fff; color: #667eea; font-weight: 600; }
+.panel { display: none; padding: 0 16px; }
+.panel.active { display: block; }
+.card {
+  background: #fff; border-radius: 16px; padding: 16px; margin-bottom: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+.input-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.input-row input, .input-row textarea {
+  flex: 1; border: 1.5px solid #e0e0e0; border-radius: 10px; padding: 12px;
+  font-size: 14px; outline: none; transition: border-color 0.2s; font-family: inherit;
+}
+.input-row input:focus, .input-row textarea:focus { border-color: #667eea; }
+.btn {
+  background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; border: none;
+  border-radius: 10px; padding: 12px 20px; font-size: 14px; cursor: pointer;
+  font-weight: 600; transition: opacity 0.2s; white-space: nowrap;
+}
+.btn:active { opacity: 0.8; }
+.btn-danger {
+  background: #ff4757; padding: 6px 12px; font-size: 12px; border-radius: 8px;
+}
+.btn-large { width: 100%; padding: 16px; font-size: 16px; border-radius: 14px; margin-top: 12px; }
+.note-item {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 12px; background: #f8f9ff; border-radius: 10px; margin-bottom: 8px; gap: 8px;
+}
+.note-item span { flex: 1; font-size: 14px; line-height: 1.5; word-break: break-all; }
+.countdown-item {
+  background: linear-gradient(135deg, #f8f9ff, #eef0ff); border-radius: 12px;
+  padding: 14px; margin-bottom: 10px;
+}
+.countdown-item .title { font-size: 15px; font-weight: 600; margin-bottom: 8px; color: #333; }
+.countdown-item .date { font-size: 11px; color: #999; margin-bottom: 10px; }
+.timer-display {
+  display: flex; gap: 6px; justify-content: center;
+}
+.timer-unit {
+  background: #fff; border-radius: 10px; padding: 8px 4px; text-align: center; min-width: 56px;
+  box-shadow: 0 2px 8px rgba(102,126,234,0.12);
+}
+.timer-unit .num { font-size: 22px; font-weight: 700; color: #667eea; font-variant-numeric: tabular-nums; }
+.timer-unit .label { font-size: 10px; color: #999; margin-top: 2px; }
+.countdown-item .del-row { text-align: right; margin-top: 8px; }
+.lottery-area { text-align: center; }
+.lottery-input {
+  width: 100%; min-height: 120px; border: 1.5px solid #e0e0e0; border-radius: 12px;
+  padding: 12px; font-size: 14px; resize: vertical; outline: none; font-family: inherit;
+}
+.lottery-input:focus { border-color: #667eea; }
+.lottery-hint { font-size: 12px; color: #999; text-align: left; margin: 6px 0 0; }
+.result-box {
+  margin-top: 16px; padding: 24px 16px; border-radius: 16px;
+  background: linear-gradient(135deg, #fff5e6, #ffe8cc);
+  min-height: 80px; display: flex; align-items: center; justify-content: center;
+  font-size: 28px; font-weight: 700; color: #e17055;
+  transition: transform 0.1s; word-break: break-all;
+}
+.result-box.drawing { animation: shake 0.1s infinite; color: #667eea; font-size: 22px; }
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+.empty-tip { text-align: center; color: #bbb; font-size: 13px; padding: 20px 0; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>三合一工具</h1>
+  <p>备忘录 &middot; 倒计时 &middot; 抽签</p>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="memo">备忘录</button>
+  <button class="tab" data-tab="countdown">倒计时</button>
+  <button class="tab" data-tab="lottery">抽签</button>
+</div>
+
+<!-- 备忘录 -->
+<div class="panel active" id="panel-memo">
+  <div class="card">
+    <div class="input-row">
+      <input type="text" id="memoInput" placeholder="输入备忘内容，回车添加..." />
+      <button class="btn" onclick="addMemo()">添加</button>
+    </div>
+  </div>
+  <div id="memoList"></div>
+</div>
+
+<!-- 倒计时 -->
+<div class="panel" id="panel-countdown">
+  <div class="card">
+    <div class="input-row">
+      <input type="text" id="cdTitle" placeholder="事件名称（如：期末考试）" />
+    </div>
+    <div class="input-row">
+      <input type="datetime-local" id="cdDate" />
+      <button class="btn" onclick="addCountdown()">添加</button>
+    </div>
+  </div>
+  <div id="cdList"></div>
+</div>
+
+<!-- 抽签 -->
+<div class="panel" id="panel-lottery">
+  <div class="card lottery-area">
+    <textarea class="lottery-input" id="lotteryInput" placeholder="输入抽签选项，每行一个&#10;例如：&#10;张三&#10;李四&#10;王五"></textarea>
+    <p class="lottery-hint">每行一个选项，留空行自动忽略</p>
+    <button class="btn btn-large" onclick="startLottery()">开始抽签</button>
+    <div class="result-box" id="lotteryResult">点击上方按钮开始</div>
+  </div>
+</div>
+
+<script>
+// ===== Tab 切换 =====
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+// ===== 备忘录 =====
+let memos = JSON.parse(localStorage.getItem('memos') || '[]');
+function saveMemos() { localStorage.setItem('memos', JSON.stringify(memos)); }
+function renderMemos() {
+  const list = document.getElementById('memoList');
+  if (!memos.length) { list.innerHTML = '<div class="empty-tip">暂无备忘，添加第一条吧</div>'; return; }
+  list.innerHTML = memos.map((m, i) =>
+    '<div class="note-item"><span>' + escapeHtml(m) + '</span><button class="btn btn-danger" onclick="delMemo(' + i + ')">删除</button></div>'
+  ).join('');
+}
+function addMemo() {
+  const input = document.getElementById('memoInput');
+  const v = input.value.trim();
+  if (!v) return;
+  memos.unshift(v); saveMemos(); renderMemos(); input.value = '';
+}
+function delMemo(i) { memos.splice(i, 1); saveMemos(); renderMemos(); }
+document.getElementById('memoInput').addEventListener('keydown', e => { if (e.key === 'Enter') addMemo(); });
+
+// ===== 倒计时 =====
+let countdowns = JSON.parse(localStorage.getItem('countdowns') || '[]');
+function saveCountdowns() { localStorage.setItem('countdowns', JSON.stringify(countdowns)); }
+function renderCountdowns() {
+  const list = document.getElementById('cdList');
+  if (!countdowns.length) { list.innerHTML = '<div class="empty-tip">暂无倒计时，添加一个吧</div>'; return; }
+  list.innerHTML = countdowns.map((c, i) =>
+    '<div class="countdown-item"><div class="title">' + escapeHtml(c.title) + '</div>' +
+    '<div class="date">目标：' + new Date(c.target).toLocaleString('zh-CN') + '</div>' +
+    '<div class="timer-display" id="cd-' + i + '"></div>' +
+    '<div class="del-row"><button class="btn btn-danger" onclick="delCountdown(' + i + ')">删除</button></div></div>'
+  ).join('');
+  updateTimers();
+}
+function updateTimers() {
+  const now = new Date().getTime();
+  countdowns.forEach((c, i) => {
+    const el = document.getElementById('cd-' + i);
+    if (!el) return;
+    let diff = c.target - now;
+    if (diff <= 0) {
+      el.innerHTML = '<div style="font-size:18px;color:#e17055;font-weight:600;">已到时间！</div>';
+      return;
+    }
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor(diff % 86400000 / 3600000);
+    const m = Math.floor(diff % 3600000 / 60000);
+    const s = Math.floor(diff % 60000 / 1000);
+    el.innerHTML =
+      '<div class="timer-unit"><div class="num">' + d + '</div><div class="label">天</div></div>' +
+      '<div class="timer-unit"><div class="num">' + pad(h) + '</div><div class="label">时</div></div>' +
+      '<div class="timer-unit"><div class="num">' + pad(m) + '</div><div class="label">分</div></div>' +
+      '<div class="timer-unit"><div class="num">' + pad(s) + '</div><div class="label">秒</div></div>';
+  });
+}
+function pad(n) { return n < 10 ? '0' + n : n; }
+function addCountdown() {
+  const title = document.getElementById('cdTitle').value.trim();
+  const target = new Date(document.getElementById('cdDate').value).getTime();
+  if (!title || isNaN(target)) { alert('请填写事件名称和时间'); return; }
+  countdowns.push({ title, target });
+  saveCountdowns(); renderCountdowns();
+  document.getElementById('cdTitle').value = '';
+  document.getElementById('cdDate').value = '';
+}
+function delCountdown(i) { countdowns.splice(i, 1); saveCountdowns(); renderCountdowns(); }
+setInterval(updateTimers, 1000);
+
+// ===== 抽签 =====
+let lotteryTimer = null;
+function startLottery() {
+  if (lotteryTimer) return;
+  const lines = document.getElementById('lotteryInput').value.split('\n').map(s => s.trim()).filter(Boolean);
+  if (lines.length < 2) { alert('请至少输入两个选项'); return; }
+  const resultBox = document.getElementById('lotteryResult');
+  resultBox.classList.add('drawing');
+  let count = 0;
+  const total = 20 + Math.floor(Math.random() * 15);
+  lotteryTimer = setInterval(() => {
+    resultBox.textContent = lines[Math.floor(Math.random() * lines.length)];
+    count++;
+    if (count >= total) {
+      clearInterval(lotteryTimer); lotteryTimer = null;
+      resultBox.classList.remove('drawing');
+      resultBox.textContent = '🎉 ' + lines[Math.floor(Math.random() * lines.length)];
+    }
+  }, 80);
+}
+
+// ===== 工具 =====
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ===== 初始化 =====
+renderMemos();
+renderCountdowns();
+
+// ===== PWA Service Worker（内联注册） =====
+if ('serviceWorker' in navigator) {
+  const swCode = `
+    const CACHE = 'pwa-tool-v1';
+    self.addEventListener('install', e => {
+      e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./', './index.html', './manifest.json'])).then(() => self.skipWaiting()));
+    });
+    self.addEventListener('activate', e => {
+      e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+    });
+    self.addEventListener('fetch', e => {
+      e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).then(resp => {
+        if (resp && resp.status === 200 && resp.type === 'basic') {
+          const clone = resp.clone();
+          caches.open(CACHE).then(c => c.put(e.request, clone));
+        }
+        return resp;
+      })).catch(() => caches.match('./index.html')));
+    });
+  `;
+  const blob = new Blob([swCode], { type: 'application/javascript' });
+  navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+}
+</script>
+</body>
+</html>
