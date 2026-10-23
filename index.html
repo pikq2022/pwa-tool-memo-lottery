@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#667eea">
-<title>三合一工具 - 备忘录/倒计时/抽签</title>
+<title>曹笑笑炒菜专属工具</title>
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='32' fill='%23667eea'/%3E%3Ctext x='96' y='128' font-size='80' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold'%3E%E5%B7%A5%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='32' fill='%23667eea'/%3E%3Ctext x='96' y='130' font-size='72' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold'%3E%E8%8F%9C%3C/text%3E%3C/svg%3E">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 body {
@@ -98,7 +98,7 @@ body {
 <body>
 
 <div class="header">
-  <h1>三合一工具</h1>
+  <h1>曹笑笑炒菜专属工具</h1>
   <p>备忘录 &middot; 倒计时 &middot; 抽签</p>
 </div>
 
@@ -256,7 +256,7 @@ renderCountdowns();
 // ===== PWA Service Worker（内联注册） =====
 if ('serviceWorker' in navigator) {
   const swCode = `
-    const CACHE = 'pwa-tool-v1';
+    const CACHE = 'pwa-tool-v2';
     self.addEventListener('install', e => {
       e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./', './index.html', './manifest.json'])).then(() => self.skipWaiting()));
     });
